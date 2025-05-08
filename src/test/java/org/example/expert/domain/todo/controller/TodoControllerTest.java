@@ -7,6 +7,7 @@ import org.example.expert.domain.todo.service.TodoService;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -31,13 +32,14 @@ class TodoControllerTest {
     private TodoService todoService;
 
     @Test
-    void todo_단건_조회에_성공한다() throws Exception {
+    @DisplayName("todo_단건_조회에_성공한다")
+    void getTodo() throws Exception {
         // given
         long todoId = 1L;
         String title = "title";
-        AuthUser authUser = new AuthUser(1L, "email", UserRole.USER);
+        AuthUser authUser = new AuthUser(1L, "email", "username", UserRole.USER);
         User user = User.fromAuthUser(authUser);
-        UserResponse userResponse = new UserResponse(user.getId(), user.getEmail());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getEmail(), user.getUsername());
         TodoResponse response = new TodoResponse(
                 todoId,
                 title,
@@ -59,7 +61,8 @@ class TodoControllerTest {
     }
 
     @Test
-    void todo_단건_조회_시_todo가_존재하지_않아_예외가_발생한다() throws Exception {
+    @DisplayName("todo_단건_조회_시_todo가_존재하지_않아_예외가_발생한다")
+    void getTodo_exception() throws Exception {
         // given
         long todoId = 1L;
 
@@ -69,9 +72,9 @@ class TodoControllerTest {
 
         // then
         mockMvc.perform(get("/todos/{todoId}", todoId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(HttpStatus.OK.name()))
-                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.name()))
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
                 .andExpect(jsonPath("$.message").value("Todo not found"));
     }
 }
