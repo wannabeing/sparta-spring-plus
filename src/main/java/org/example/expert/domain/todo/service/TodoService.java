@@ -1,5 +1,8 @@
 package org.example.expert.domain.todo.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.domain.common.dto.AuthUser;
@@ -48,10 +51,14 @@ public class TodoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<TodoResponse> getTodos(int page, int size) {
+    public Page<TodoResponse> getTodos(int page, int size, String weather, LocalDate start, LocalDate end) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
+        LocalDateTime startDateTime = (start != null) ? start.atStartOfDay() : null; // LocalDateTime 으로 변환
+        LocalDateTime endDateTime = (end != null) ? end.atTime(23, 59, 59) : null; // LocalDateTime 으로 변환
+        String keywordWeather = (weather != null) ? "%" + weather + "%" : null; // like keyword 설정
+
+        Page<Todo> todos = todoRepository.findAllByFilters(pageable, keywordWeather, startDateTime, endDateTime);
 
         return todos.map(todo -> new TodoResponse(
                 todo.getId(),
